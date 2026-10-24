@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0f0d">
+  <meta name="description" content="ToolStack Voice — turn speech into editable text in your browser.">
+  <title>ToolStack Voice — Speech to Text</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090d0b;--panel:#111814;--panel2:#151f19;--line:#26372c;--text:#eff8f0;--muted:#9aada0;--green:#a6ff75;--green2:#5fe0a0;--danger:#ff7777;--radius:22px}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 12% 0%,#183222 0,transparent 35%),radial-gradient(ellipse at 90% 10%,#14251d 0,transparent 30%),var(--bg);color:var(--text);font:16px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .wrap{width:min(1040px,calc(100% - 32px));margin:auto}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:25px 0}
+    .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:-.04em;font-size:1.2rem}
+    .logo{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:var(--green);color:#10200f;box-shadow:0 0 28px #a6ff7525}
+    .tag{border:1px solid var(--line);color:var(--muted);padding:7px 11px;border-radius:999px;font-size:.8rem}
+    main{padding:28px 0 64px}
+    .hero{text-align:center;max-width:690px;margin:12px auto 30px}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--green);font-weight:750;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+    h1{font-size:clamp(2.4rem,7vw,4.5rem);line-height:1.03;letter-spacing:-.065em;margin:15px 0}
+    h1 span{color:var(--green)}
+    .hero p{color:var(--muted);font-size:1.05rem;margin:0 auto;max-width:560px}
+    .app{border:1px solid #2b3d30;background:linear-gradient(145deg,#111914ed,#0e1411f5);border-radius:28px;padding:clamp(18px,4vw,32px);box-shadow:0 28px 90px #0006;backdrop-filter:blur(18px)}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+    .status{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:.92rem}
+    .status-indicator{width:9px;height:9px;border-radius:50%;background:#708176}
+    .status.live{color:var(--green)}.status.live .status-indicator{background:var(--green);box-shadow:0 0 0 5px #a6ff751c;animation:pulse 1.3s infinite}
+    @keyframes pulse{50%{box-shadow:0 0 0 9px #a6ff7500}}
+    .language{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:.88rem}
+    select{background:#0b110d;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px 35px 10px 12px;max-width:100%;outline:none}
+    select:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px #a6ff7515}
+    .mic-area{display:grid;place-items:center;padding:22px 0 27px;border:1px dashed #334b39;border-radius:22px;background:radial-gradient(circle at center,#1b3021 0,transparent 62%);margin-bottom:20px}
+    .mic-button{width:92px;height:92px;border:0;border-radius:50%;background:var(--green);color:#10200f;display:grid;place-items:center;box-shadow:0 0 0 10px #a6ff7510,0 12px 36px #a6ff7520;transition:transform .2s,box-shadow .2s}
+    .mic-button:hover{transform:translateY(-2px);box-shadow:0 0 0 13px #a6ff7513,0 14px 42px #a6ff752b}
+    .mic-button:disabled{opacity:.55;cursor:not-allowed}
+    .mic-button svg{width:34px;height:34px}
+    .mic-area strong{margin-top:17px;font-size:1.02rem}
+    .mic-area small{color:var(--muted);margin-top:4px;text-align:center;padding:0 12px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:17px}
+    .btn{border:1px solid var(--line);border-radius:12px;padding:10px 15px;background:#17221a;color:var(--text);font-weight:650;transition:background .15s,transform .15s}
+    .btn:hover{background:#203126;transform:translateY(-1px)}
+    .btn.primary{background:var(--green);color:#10200f;border-color:var(--green)}
+    .btn.primary:hover{background:#bdff9a}
+    .btn.stop{background:#321a1b;border-color:#633033;color:#ffb6b6}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .transcript-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:26px 0 10px}
+    .transcript-head h2{font-size:1.05rem;margin:0;letter-spacing:-.02em}
+    .count{font-size:.8rem;color:var(--muted)}
+    textarea{width:100%;min-height:235px;resize:vertical;background:#0a100c;border:1px solid var(--line);border-radius:16px;padding:17px;color:var(--text);line-height:1.7;outline:none}
+    textarea::placeholder{color:#65776a}
+    .below{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+    .hint{color:var(--muted);font-size:.82rem}
+    .mini-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .mini-actions .btn{font-size:.85rem;padding:8px 12px}
+    .notice{display:none;border:1px solid #3d523f;background:#142118;border-radius:13px;padding:12px 14px;color:#cce8ce;font-size:.9rem;margin:0 0 17px}
+    .notice.show{display:block}.notice.error{border-color:#6a3336;background:#291719;color:#ffc4c4}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+    .feature{border:1px solid var(--line);border-radius:18px;background:#0e1511b8;padding:18px}
+    .feature .ico{color:var(--green);font-size:1.2rem}.feature h3{margin:8px 0 4px;font-size:.95rem}.feature p{margin:0;color:var(--muted);font-size:.84rem}
+    footer{border-top:1px solid #1d2a21;padding:22px 0 30px;color:var(--muted);font-size:.86rem}
+    footer .foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    footer a{color:var(--green);text-decoration:none}footer a:hover{text-decoration:underline}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(max-width:650px){header{padding:18px 0}.tag{display:none}main{padding-top:12px}.features{grid-template-columns:1fr}.toolbar{align-items:flex-start}.language{width:100%;justify-content:space-between}.language select{flex:1;max-width:70%}.mic-area{padding:25px 8px}.below{align-items:flex-start}.mini-actions{width:100%}.mini-actions .btn{flex:1}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand"><div class="logo" aria-hidden="true"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="2"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v3m-4 0h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>ToolStack<span style="color:var(--green)">.</span></div>
+      <div class="tag">VOICE TO TEXT · BROWSER TOOL</div>
+    </header>
+    <main>
+      <section class="hero">
+        <div class="eyebrow"><span class="dot"></span> Speak naturally</div>
+        <h1>Your voice.<br><span>Words on screen.</span></h1>
+        <p>Turn speech into editable text in real time. Copy it, download it, or clean it up right here.</p>
+      </section>
+
+      <section class="app" aria-label="Voice to text tool">
+        <div id="notice" class="notice" role="status" aria-live="polite"></div>
+        <div class="toolbar">
+          <div id="status" class="status"><span class="status-indicator"></span><span id="statusText">Ready when you are</span></div>
+          <label class="language" for="language">Recognition language
+            <select id="language" aria-label="Recognition language">
+              <option value="auto">Browser default</option>
+              <option value="en-IN">English (India)</option>
+              <option value="en-US">English (US)</option>
+              <option value="en-GB">English (UK)</option>
+              <option value="ml-IN">Malayalam</option>
+              <option value="hi-IN">Hindi</option>
+              <option value="ta-IN">Tamil</option>
+              <option value="te-IN">Telugu</option>
+              <option value="kn-IN">Kannada</option>
+              <option value="bn-IN">Bengali</option>
+              <option value="ur-PK">Urdu</option>
+              <option value="ar-SA">Arabic</option>
+              <option value="fr-FR">French</option>
+              <option value="de-DE">German</option>
+              <option value="es-ES">Spanish</option>
+              <option value="ja-JP">Japanese</option>
+              <option value="zh-CN">Chinese (Mandarin)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mic-area">
+          <button id="micButton" class="mic-button" type="button" aria-label="Start voice recognition">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3" stroke="currentColor" stroke-width="2"/><path d="M5.5 10.5v1a6.5 6.5 0 0 0 13 0v-1M12 18v3m-3 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <strong id="micTitle">Tap to start speaking</strong>
+          <small id="micSub">Allow microphone access when your browser asks.</small>
+          <div class="actions">
+            <button id="startButton" class="btn primary" type="button">Start listening</button>
+            <button id="stopButton" class="btn stop" type="button" disabled>Stop listening</button>
+          </div>
+        </div>
+
+        <div class="transcript-head">
+          <h2>Your transcript</h2>
+          <span class="count" id="wordCount">0 words · 0 characters</span>
+        </div>
+        <label class="sr-only" for="transcript">Editable transcript</label>
+        <textarea id="transcript" placeholder="Your recognized words will appear here. You can also type or edit text yourself…" spellcheck="true"></textarea>
+        <div class="below">
+          <div class="hint">Tip: Speak clearly and choose the language you are speaking.</div>
+          <div class="mini-actions">
+            <button id="copyButton" class="btn" type="button">Copy text</button>
+            <button id="downloadButton" class="btn" type="button">Download .txt</button>
+            <button id="clearButton" class="btn" type="button">Clear</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="features" aria-label="Features">
+        <article class="feature"><div class="ico">◉</div><h3>Live transcription</h3><p>See interim speech and finalized phrases as recognition returns them.</p></article>
+        <article class="feature"><div class="ico">✎</div><h3>Editable by design</h3><p>Fix names, punctuation, and mistakes before copying or saving.</p></article>
+        <article class="feature"><div class="ico">↧</div><h3>Keep your text</h3><p>Copy the transcript or download a plain text file in one click.</p></article>
+      </section>
+    </main>
+    <footer><div class="foot"><span>ToolStack Voice · Made for quick notes and dictation.</span><span>Developed by Ameen — <a href="https://iamameen.vercel.app/" target="_blank" rel="noopener noreferrer">iamameen.vercel.app</a></span></div></footer>
+  </div>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const transcript = $("transcript");
+  const language = $("language");
+  const notice = $("notice");
+  const status = $("status");
+  const statusText = $("statusText");
+  const micButton = $("micButton");
+  const startButton = $("startButton");
+  const stopButton = $("stopButton");
+  const micTitle = $("micTitle");
+  const micSub = $("micSub");
+  let recognition = null;
+  let listening = false;
+  let manuallyStopped = false;
+  let finalText = "";
+
+  function showNotice(message, isError = false) {
+    notice.textContent = message;
+    notice.className = "notice show" + (isError ? " error" : "");
+  }
+  function hideNotice() { notice.className = "notice"; notice.textContent = ""; }
+  function setStatus(text, live = false) {
+    statusText.textContent = text;
+    status.classList.toggle("live", live);
+    micTitle.textContent = live ? "Listening… speak now" : (text === "Ready when you are" ? "Tap to start speaking" : text);
+    micSub.textContent = live ? "Your browser is listening for speech. Press Stop when you’re done." : "Allow microphone access when your browser asks.";
+    micButton.setAttribute("aria-label", live ? "Stop voice recognition" : "Start voice recognition");
+    startButton.disabled = live || !SpeechRecognition;
+    stopButton.disabled = !live;
+  }
+  function updateCount() {
+    const value = transcript.value;
+    const words = value.trim() ? value.trim().split(/\s+/u).length : 0;
+    $("wordCount").textContent = `${words} ${words === 1 ? "word" : "words"} · ${value.length} characters`;
+  }
+  function currentLanguage() {
+    return language.value === "auto" ? (navigator.language || "en-US") : language.value;
+  }
+  function createRecognition() {
+    if (!SpeechRecognition) return null;
+    const r = new SpeechRecognition();
+    r.lang = currentLanguage();
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 1;
+    r.onstart = () => { listening = true; hideNotice(); setStatus("Listening", true); };
+    r.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const phrase = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalText += phrase.trim() ? phrase.trim() + " " : "";
+        } else {
+          interim += phrase;
+        }
+      }
+      const prefix = finalText.trimEnd();
+      // Keep the user's existing transcript as the starting point, then append this session's recognized text.
+      const base = recognitionBase;
+      transcript.value = [base.trimEnd(), prefix, interim].filter(Boolean).join(base.trim() && (prefix || interim) ? " " : "");
+      updateCount();
+    };
+    r.onerror = (event) => {
+      const messages = {
+        "not-allowed": "Microphone permission was blocked. Allow microphone access in your browser’s site settings, then try again.",
+        "service-not-allowed": "The browser’s speech recognition service is unavailable or blocked.",
+        "audio-capture": "No microphone was found. Connect or enable a microphone and try again.",
+        "no-speech": "No speech was detected. Try speaking a little louder, then start again.",
+        "network": "The recognition service needs a working connection, or the network blocked it.",
+        "language-not-supported": "This browser’s speech service does not support the selected language. Try another language.",
+        "aborted": "Listening was cancelled."
+      };
+      showNotice(messages[event.error] || `Speech recognition error: ${event.error}. Please try again.`, event.error !== "aborted");
+      if (event.error !== "aborted") setStatus("Recognition stopped");
+    };
+    r.onend = () => {
+      listening = false;
+      setStatus("Ready when you are");
+      if (!manuallyStopped && !notice.classList.contains("error")) {
+        // Some implementations end automatically after a pause. Keep the UI honest and let the user restart.
+        showNotice("Listening ended. Tap Start listening to continue dictating.");
+      }
+    };
+    return r;
+  }
+  let recognitionBase = "";
+
+  function startListening() {
+    if (!SpeechRecognition) {
+      showNotice("Speech recognition is not supported in this browser. Try the latest Chrome or Microsoft Edge, or use Safari on a supported Apple device.", true);
+      return;
+    }
+    if (listening) return;
+    hideNotice();
+    manuallyStopped = false;
+    recognitionBase = transcript.value.trimEnd();
+    finalText = "";
+    recognition = createRecognition();
+    try {
+      recognition.start();
+    } catch (err) {
+      showNotice("Could not start listening. If you just stopped, wait a moment and try again.", true);
+    }
+  }
+  function stopListening() {
+    manuallyStopped = true;
+    if (recognition && listening) {
+      try { recognition.stop(); } catch (_) {}
+    }
+    listening = false;
+    setStatus("Ready when you are");
+    if (transcript.value.trim()) showNotice("Listening stopped. Your transcript is ready to edit, copy, or download.");
+  }
+
+  micButton.addEventListener("click", () => listening ? stopListening() : startListening());
+  startButton.addEventListener("click", startListening);
+  stopButton.addEventListener("click", stopListening);
+  language.addEventListener("change", () => {
+    if (listening) {
+      stopListening();
+      showNotice("Language changed. Start listening again to use the new language.");
+    }
+  });
+  transcript.addEventListener("input", updateCount);
+  $("copyButton").addEventListener("click", async () => {
+    if (!transcript.value.trim()) { showNotice("There’s no text to copy yet.", true); return; }
+    try {
+      await navigator.clipboard.writeText(transcript.value);
+      showNotice("Transcript copied to clipboard.");
+    } catch (_) {
+      transcript.focus(); transcript.select();
+      try {
+        const ok = document.execCommand("copy");
+        showNotice(ok ? "Transcript copied to clipboard." : "Copy was blocked. Select the text and copy it manually.", !ok);
+      } catch (_) { showNotice("Copy was blocked. Select the text and copy it manually.", true); }
+    }
+  });
+  $("downloadButton").addEventListener("click", () => {
+    if (!transcript.value.trim()) { showNotice("There’s no text to download yet.", true); return; }
+    const blob = new Blob([transcript.value], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "toolstack-transcript.txt";
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    showNotice("Text file downloaded.");
+  });
+  $("clearButton").addEventListener("click", () => {
+    if (listening) stopListening();
+    transcript.value = ""; finalText = ""; recognitionBase = ""; updateCount(); hideNotice(); transcript.focus();
+  });
+
+  updateCount();
+  if (!SpeechRecognition) {
+    setStatus("Speech recognition unavailable");
+    startButton.disabled = true; micButton.disabled = true; stopButton.disabled = true;
+    micTitle.textContent = "Speech recognition not supported";
+    micSub.textContent = "Try a supported browser such as Chrome or Microsoft Edge.";
+    showNotice("This browser does not expose SpeechRecognition. The text editor, copy, and download tools still work.", true);
+  } else {
+    setStatus("Ready when you are");
+  }
+})();
+</script>
+</body>
+</html>
